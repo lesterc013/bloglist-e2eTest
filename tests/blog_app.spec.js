@@ -80,6 +80,56 @@ describe('Blog app', () => {
       // Check that the blog is not there
       await expect(page.getByTestId('initialBlogRender')).not.toBeVisible()
     })
+
+    test.only('Blogs are in order of most likes to least', async ({ page }) => {
+      // Add two different blogs
+      await createBlog(page, '1 likes', 'author', 'url')
+      await page
+        .getByTestId('initialBlogRender')
+        .filter({ hasText: '1 likes, author' })
+        .waitFor()
+
+      await createBlog(page, '2 likes', 'author', 'url')
+      await page
+        .getByTestId('initialBlogRender')
+        .filter({ hasText: '2 likes, author' })
+        .waitFor()
+
+      // Then need to selectively get each blog's view button first, and click
+      await page
+        .getByText('1 likes, author')
+        .getByRole('button', { name: 'view' })
+        .click()
+      await page
+        .getByText('2 likes, author')
+        .getByRole('button', { name: 'view' })
+        .click()
+
+      // Click them in descending order
+      await page
+        .getByText('1 likes, author')
+        .getByRole('button', { name: 'like' })
+        .click()
+
+      await page
+        .getByText('2 likes, author')
+        .getByRole('button', { name: 'like' })
+        .click()
+      await page
+        .getByText('2 likes, author')
+        .getByRole('button', { name: 'like' })
+        .click()
+
+      // first should guarantee that we select the first element encountered with testid viewBlogRender -- that is the one with 2 likes; last will select the 1 like
+      const twoLikesDiv = page.getByTestId('viewBlogRender').first()
+      const oneLikesDiv = page.getByTestId('viewBlogRender').last()
+
+      await expect(twoLikesDiv).toContainText('2')
+      await expect(twoLikesDiv).not.toContainText('1')
+
+      await expect(oneLikesDiv).toContainText('1')
+      await expect(oneLikesDiv).not.toContainText('2')
+    })
   })
 
   describe('Another user test', () => {
