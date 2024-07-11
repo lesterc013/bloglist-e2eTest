@@ -12,6 +12,13 @@ describe('Blog app', () => {
         password: 'salainen',
       },
     })
+    await request.post('http://localhost:3003/api/users', {
+      data: {
+        name: 'Superuser',
+        username: 'root',
+        password: 'salainen',
+      },
+    })
     await page.goto('http://localhost:5173')
   })
 
@@ -63,7 +70,7 @@ describe('Blog app', () => {
     })
 
     test('User who added the blog can remove it', async ({ page }) => {
-      createBlog(page, 'title', 'author', 'url')
+      await createBlog(page, 'title', 'author', 'url')
       const viewButton = page.getByRole('button', { name: 'view' })
       await viewButton.click()
       // Find remove button
@@ -72,6 +79,29 @@ describe('Blog app', () => {
 
       // Check that the blog is not there
       await expect(page.getByTestId('initialBlogRender')).not.toBeVisible()
+    })
+  })
+
+  describe('Another user test', () => {
+    test.only('Only user who added the blog can see the remove button', async ({
+      page,
+    }) => {
+      // Now is logged in as Matti
+      loginHelper(page, 'mluukkai', 'salainen')
+      // Create a blog
+      await createBlog(page, 'title', 'author', 'url')
+      // Logout
+      const logoutButton = page.getByRole('button', { name: 'Logout' })
+      await logoutButton.click()
+      // Login to Superuser
+      await loginHelper(page, 'root', 'salainen')
+      // Open the view
+      const viewButton = page.getByRole('button', { name: 'view' })
+      await viewButton.click()
+      // Check if remove not there
+      await expect(
+        page.getByRole('button', { name: 'remove' })
+      ).not.toBeVisible()
     })
   })
 })
