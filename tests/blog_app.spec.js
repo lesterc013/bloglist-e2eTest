@@ -1,6 +1,6 @@
 const { test, expect, describe, beforeEach } = require('@playwright/test')
 const { request } = require('http')
-const { loginHelper } = require('./helper')
+const { loginHelper, createBlog } = require('./helper')
 
 describe('Blog app', () => {
   beforeEach(async ({ request, page }) => {
@@ -25,7 +25,7 @@ describe('Blog app', () => {
     await expect(passwordField).toBeVisible()
   })
 
-  describe('Login', () => {
+  describe('Login Tests', () => {
     test('Success with correct credentials', async ({ page }) => {
       await loginHelper(page, 'mluukkai', 'salainen')
       await expect(page.getByText('Matti Luukkainen logged in')).toBeVisible()
@@ -34,6 +34,18 @@ describe('Blog app', () => {
     test('Failure with wrong credentials', async ({ page }) => {
       await loginHelper(page, 'mluukkai', 'wrong')
       await expect(page.getByText('invalid username or password')).toBeVisible()
+    })
+  })
+
+  describe('When logged in', () => {
+    beforeEach(async ({ page }) => {
+      await loginHelper(page, 'mluukkai', 'salainen')
+    })
+
+    test('User can create a blog', async ({ page }) => {
+      createBlog(page, 'title', 'author', 'url')
+      // Locate the title, author
+      await expect(page.getByTestId('initialBlogRender')).toBeVisible()
     })
   })
 })
