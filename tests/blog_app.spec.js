@@ -47,5 +47,19 @@ describe('Blog app', () => {
       // Locate the title, author
       await expect(page.getByTestId('initialBlogRender')).toBeVisible()
     })
+
+    test('User can like a blog', async ({ page }) => {
+      createBlog(page, 'title', 'author', 'url')
+      const viewButton = page.getByRole('button', { name: 'view' })
+      await viewButton.click()
+      // Should have a value of 0 in the div
+      await expect(page.getByTestId('viewBlogRender')).toContainText('0')
+
+      const likeButton = page.getByRole('button', { name: 'like' })
+      // Click it
+      await likeButton.click()
+      // Check that there is now a 1 inside
+      await expect(page.getByTestId('viewBlogRender')).toContainText('1')
+    })
   })
 })
