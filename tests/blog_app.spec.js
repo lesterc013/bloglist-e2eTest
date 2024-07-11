@@ -61,5 +61,17 @@ describe('Blog app', () => {
       // Check that there is now a 1 inside
       await expect(page.getByTestId('viewBlogRender')).toContainText('1')
     })
+
+    test('User who added the blog can remove it', async ({ page }) => {
+      createBlog(page, 'title', 'author', 'url')
+      const viewButton = page.getByRole('button', { name: 'view' })
+      await viewButton.click()
+      // Find remove button
+      const removeButton = page.getByRole('button', { name: 'remove' })
+      await removeButton.click()
+
+      // Check that the blog is not there
+      await expect(page.getByTestId('initialBlogRender')).not.toBeVisible()
+    })
   })
 })
